@@ -1,7 +1,12 @@
 import { OpenAI } from 'langchain/llms/openai';
+
+import { ConversationalRetrievalQAChain } from 'langchain/chains';
+import { Chroma } from 'langchain/vectorstores/chroma';
+=======
 import { PineconeStore } from 'langchain/vectorstores/pinecone';
 import { LLMChain, loadQAChain, ChatVectorDBQAChain } from 'langchain/chains';
 import { PromptTemplate } from 'langchain/prompts';
+
 
 const CONDENSE_PROMPT =
   PromptTemplate.fromTemplate(`Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
@@ -21,10 +26,17 @@ If the question is not related to the context, politely respond that you are tun
 Question: {question}
 Helpful answer in markdown:`);
 
+
+export const makeChain = (vectorstore: Chroma) => {
+  const model = new OpenAI({
+    temperature: 0, // increase temepreature to get more creative answers
+    modelName: 'gpt-3.5-turbo', //change this to gpt-4 if you have access
+=======
 export const makeChain = (vectorstore: PineconeStore) => {
   const questionGenerator = new LLMChain({
     llm: new OpenAI({ temperature: 0 }),
     prompt: CONDENSE_PROMPT,
+
   });
 
   const docChain = loadQAChain(
