@@ -20,7 +20,10 @@ Prelude: Please make sure you have already downloaded node on your system and th
 git clone [github https url]
 ```
 
+
 3. Install packages
+=======
+2. Install packages
 
 First run `npm install yarn -g` to install yarn globally (if you haven't already).
 
