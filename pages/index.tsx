@@ -4,8 +4,7 @@ import styles from '@/styles/Home.module.css';
 import { Message } from '@/types/chat';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
-import LoadingDots from '@/components/ui/LoadingDots';
-import { Document } from 'langchain/document';
+
 import {
   Accordion,
   AccordionContent,
@@ -25,7 +24,7 @@ export default function Home() {
   }>({
     messages: [
       {
-        message: 'Hi, what would you like to learn about this legal case?',
+        message: 'Hi, what would you like to learn about this document?',
         type: 'apiMessage',
       },
     ],
@@ -125,7 +124,7 @@ export default function Home() {
       <Layout>
         <div className="mx-auto flex flex-col gap-4">
           <h1 className="text-2xl font-bold leading-[1.1] tracking-tighter text-center">
-            Chat With Your Legal Docs
+            Chat With Your Docs
           </h1>
           <main className={styles.main}>
             <div className={styles.cloud}>
@@ -262,7 +261,8 @@ export default function Home() {
         </div>
         <footer className="m-auto p-4">
           <a href="https://twitter.com/mayowaoshin">
-            Powered by LangChainAI. Demo built by Mayo (Twitter: @mayowaoshin).
+            Powered by LangChainAI and Chroma. Demo built by Mayo (Twitter:
+            @mayowaoshin).
           </a>
         </footer>
       </Layout>
