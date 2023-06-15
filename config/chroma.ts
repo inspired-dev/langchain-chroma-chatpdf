@@ -3,7 +3,8 @@ if (!process.env.COLLECTION_NAME) {
 }
 
 const COLLECTION_NAME = process.env.COLLECTION_NAME ?? '';
-
+const COLLECTION_NAME = process.env.COLLECTION_NAME ?? '';
+const COLLECTION_NAME = process.env.COLLECTION_NAME ?? '';
 export { COLLECTION_NAME };
 
 export { COLLECTION_NAME };
