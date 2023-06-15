@@ -4,8 +4,7 @@ import styles from '@/styles/Home.module.css';
 import { Message } from '@/types/chat';
 import Image from 'next/image';
 import ReactMarkdown from 'react-markdown';
-import LoadingDots from '@/components/ui/LoadingDots';
-import { Document } from 'langchain/document';
+
 import {
   Accordion,
   AccordionContent,
