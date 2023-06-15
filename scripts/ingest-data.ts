@@ -4,7 +4,7 @@ import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { CustomPDFLoader } from '@/utils/customPDFLoader';
 =======
 import { PineconeStore } from 'langchain/vectorstores/pinecone';
-import { pinecone } from '@/utils/pinecone-client';
+
 import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
 import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
 
