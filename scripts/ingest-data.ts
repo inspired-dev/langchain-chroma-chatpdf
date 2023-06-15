@@ -35,6 +35,17 @@ export const run = async () => {
 
     const docs = await textSplitter.splitDocuments(rawDocs);
     console.log('split docs', docs);
+    
+    const rawDocs = await directoryLoader.load();
+
+    /* Split text into chunks */
+    const textSplitter = new RecursiveCharacterTextSplitter({
+      chunkSize: 1000,
+      chunkOverlap: 200,
+    });
+
+    const docs = await textSplitter.splitDocuments(rawDocs);
+    console.log('split docs', docs);
 
     console.log('creating vector store...');
     /*create and store the embeddings in the vectorStore*/
