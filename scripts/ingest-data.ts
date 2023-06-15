@@ -1,21 +1,31 @@
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
-import { OpenAIEmbeddings } from 'langchain/embeddings';
-import { PineconeStore } from 'langchain/vectorstores';
+import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
+
+import { CustomPDFLoader } from '@/utils/customPDFLoader';
+=======
+import { PineconeStore } from 'langchain/vectorstores/pinecone';
 import { pinecone } from '@/utils/pinecone-client';
-import { PDFLoader } from 'langchain/document_loaders';
+import { PDFLoader } from 'langchain/document_loaders/fs/pdf';
 import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
 
-/* Name of directory to retrieve files from. You can change this as required */
-const filePath = 'docs/MorseVsFrederick.pdf';
+import { DirectoryLoader } from 'langchain/document_loaders/fs/directory';
+import { Chroma } from 'langchain/vectorstores/chroma';
+import { COLLECTION_NAME } from '@/config/chroma';
+
+/* Name of directory to retrieve your files from 
+   Make sure to add your PDF files inside the 'docs' folder
+*/
+const filePath = 'docs';
 
 export const run = async () => {
   try {
-    /*load raw docs from the pdf file in the directory */
-    const loader = new PDFLoader(filePath);
-    // const loader = new PDFLoader(filePath);
-    const rawDocs = await loader.load();
+    /*load raw docs from the all files in the directory */
+    const directoryLoader = new DirectoryLoader(filePath, {
+      '.pdf': (path) => new PDFLoader(path),
+    });
 
-    console.log(rawDocs);
+    // const loader = new PDFLoader(filePath);
+    const rawDocs = await directoryLoader.load();
 
     /* Split text into chunks */
     const textSplitter = new RecursiveCharacterTextSplitter({
@@ -29,22 +39,17 @@ export const run = async () => {
     console.log('creating vector store...');
     /*create and store the embeddings in the vectorStore*/
     const embeddings = new OpenAIEmbeddings();
-    const index = pinecone.Index(PINECONE_INDEX_NAME); //change to your own index name
 
-    //embed the PDF documents
+    let chroma = new Chroma(embeddings, { collectionName: COLLECTION_NAME });
+    await chroma.index?.reset();
 
-    /* Pinecone recommends a limit of 100 vectors per upsert request to avoid errors*/
-    const chunkSize = 50;
-    for (let i = 0; i < docs.length; i += chunkSize) {
-      const chunk = docs.slice(i, i + chunkSize);
-      console.log('chunk', i, chunk);
-      await PineconeStore.fromDocuments(
-        index,
-        chunk,
-        embeddings,
-        'text',
-        PINECONE_NAME_SPACE,
-      );
+    // Ingest documents in batches of 100
+
+    for (let i = 0; i < docs.length; i += 100) {
+      const batch = docs.slice(i, i + 100);
+      await Chroma.fromDocuments(batch, embeddings, {
+        collectionName: COLLECTION_NAME,
+      });
     }
   } catch (error) {
     console.log('error', error);

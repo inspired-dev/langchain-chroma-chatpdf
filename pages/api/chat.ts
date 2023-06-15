@@ -1,9 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { OpenAIEmbeddings } from 'langchain/embeddings';
-import { PineconeStore } from 'langchain/vectorstores';
+import { OpenAIEmbeddings } from 'langchain/embeddings/openai';
 import { makeChain } from '@/utils/makechain';
-import { pinecone } from '@/utils/pinecone-client';
-import { PINECONE_INDEX_NAME, PINECONE_NAME_SPACE } from '@/config/pinecone';
+import { COLLECTION_NAME } from '@/config/chroma';
+import { Chroma } from 'langchain/vectorstores/chroma';
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,52 +10,41 @@ export default async function handler(
 ) {
   const { question, history } = req.body;
 
+  console.log('question', question);
+
+  //only accept post requests
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
   if (!question) {
     return res.status(400).json({ message: 'No question in the request' });
   }
   // OpenAI recommends replacing newlines with spaces for best results
   const sanitizedQuestion = question.trim().replaceAll('\n', ' ');
 
-  const index = pinecone.Index(PINECONE_INDEX_NAME);
-
-  /* create vectorstore*/
-  const vectorStore = await PineconeStore.fromExistingIndex(
-    index,
-    new OpenAIEmbeddings({}),
-    'text',
-    PINECONE_NAME_SPACE, //optional
-  );
-
-  res.writeHead(200, {
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache, no-transform',
-    Connection: 'keep-alive',
-  });
-
-  const sendData = (data: string) => {
-    res.write(`data: ${data}\n\n`);
-  };
-
-  sendData(JSON.stringify({ data: '' }));
-
-  //create chain
-  const chain = makeChain(vectorStore, (token: string) => {
-    sendData(JSON.stringify({ data: token }));
-  });
-
   try {
-    //Ask a question
+    /* create vectorstore*/
+    const vectorStore = await Chroma.fromExistingCollection(
+      new OpenAIEmbeddings({}),
+      {
+        collectionName: COLLECTION_NAME,
+      },
+    );
+
+    //create chain
+    const chain = makeChain(vectorStore);
+    //Ask a question using chat history
     const response = await chain.call({
       question: sanitizedQuestion,
       chat_history: history || [],
     });
 
     console.log('response', response);
-    sendData(JSON.stringify({ sourceDocs: response.sourceDocuments }));
-  } catch (error) {
+    res.status(200).json(response);
+  } catch (error: any) {
     console.log('error', error);
-  } finally {
-    sendData('[DONE]');
-    res.end();
+    res.status(500).json({ error: error.message || 'Something went wrong' });
   }
 }
